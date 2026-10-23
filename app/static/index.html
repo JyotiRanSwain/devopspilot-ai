@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DevOpsPilot AI</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <div class="shell">
+    <nav class="side" aria-label="Main">
+      <div class="brand">DevOpsPilot</div>
+      <a href="#/overview" data-nav="overview">Overview</a>
+      <a href="#/containers" data-nav="containers">Containers</a>
+      <a href="#/logs" data-nav="logs">Log explorer</a>
+      <a href="#/assistant" data-nav="assistant">Assistant</a>
+      <a href="#/incidents" data-nav="incidents">Incidents</a>
+      <a href="#/integrations" data-nav="integrations">Integrations</a>
+    </nav>
+    <div class="main">
+      <header class="top">
+        <span id="docker-pill" class="pill pill-wait">Checking Docker…</span>
+        <span class="spacer"></span>
+        <button id="token-btn" class="btn ghost" hidden>Set API token</button>
+      </header>
+      <main id="view" tabindex="-1"></main>
+    </div>
+  </div>
+  <script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+# DevOpsPilot AI. Start with:  docker compose up --build
+# The dashboard never touches the Docker socket directly: it talks to a filtered, read-only proxy.
+services:
+  docker-proxy:
+    image: tecnativa/docker-socket-proxy:latest   # pin a specific tag for production
+    environment:
+      CONTAINERS: 1   # list, inspect, logs, stats (GET only)
+      INFO: 1
+      VERSION: 1
+      POST: 0         # blocks every state-changing request (start, stop, delete, exec...)
+      # Everything else (EXEC, IMAGES, VOLUMES, NETWORKS, SWARM...) stays denied.
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks: [internal]
+    restart: unless-stopped
+
+  dashboard:
+    build: .
+    depends_on: [docker-proxy]
+    environment:
+      DOP_HOST: 0.0.0.0                      # inside the container only; the port below is published to localhost
+      DOP_API_TOKEN: ${DOP_API_TOKEN:?Set DOP_API_TOKEN in .env}
+      DOP_DOCKER_HOST: tcp://docker-proxy:2375
+      DOP_DB_PATH: /srv/data/devopspilot.db
+      DOP_ALLOWED_ORIGINS: http://127.0.0.1:${DOP_PORT:-8000},http://localhost:${DOP_PORT:-8000}
+      DOP_AI_PROVIDER: ${DOP_AI_PROVIDER:-none}
+      DOP_AI_MODEL: ${DOP_AI_MODEL:-}
+      DOP_AI_BASE_URL: ${DOP_AI_BASE_URL:-https://api.openai.com/v1}
+      DOP_AI_API_KEY: ${DOP_AI_API_KEY:-}
+      DOP_AWS_ENABLED: ${DOP_AWS_ENABLED:-false}
+      DOP_AWS_REGION: ${DOP_AWS_REGION:-}
+    ports:
+      - "127.0.0.1:${DOP_PORT:-8000}:8000"   # localhost only
+    volumes:
+      - pilot-data:/srv/data
+    networks: [internal, default]
+    restart: unless-stopped
+
+  mcp:                                         # optional: docker compose --profile mcp up
+    profiles: [mcp]
+    build: .
+    command: ["python", "-m", "app.mcp.server", "--transport", "streamable-http", "--host", "0.0.0.0", "--port", "8765"]
+    depends_on: [docker-proxy]
+    environment:
+      DOP_DOCKER_HOST: tcp://docker-proxy:2375
+      DOP_DB_PATH: /srv/data/devopspilot.db
+    ports:
+      - "127.0.0.1:8765:8765"                  # no built-in auth: keep on localhost or put an authenticating gateway in front
+    volumes:
+      - pilot-data:/srv/data
+    networks: [internal, default]
+
+networks:
+  internal:
+    internal: true
+
+volumes:
+  pilot-data:

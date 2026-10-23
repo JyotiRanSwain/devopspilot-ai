@@ -1,0 +1,12 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {"Sid": "DevOpsPilotReadOnly", "Effect": "Allow",
+     "Action": ["logs:FilterLogEvents", "logs:DescribeLogGroups", "cloudwatch:DescribeAlarms", "cloudwatch:GetMetricData",
+                "ecs:DescribeServices", "ecs:ListTasks", "ecs:DescribeTasks",
+                "ec2:DescribeInstanceStatus", "ec2:DescribeInstances"],
+     "Resource": "*"},
+    {"Sid": "OptionalBedrockInvoke", "Effect": "Allow",
+     "Action": ["bedrock:InvokeModel"], "Resource": "arn:aws:bedrock:*::foundation-model/*"}
+  ]
+}
